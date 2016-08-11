@@ -5,15 +5,12 @@
  */
 package burp.redirector;
 
-import burp.IBurpExtenderCallbacks;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
@@ -44,7 +41,6 @@ public final class Redirector implements RedirectorObserver {
         try {
             rules = (ArrayList<RedirectRule>) new ObjectInputStream(new ByteArrayInputStream(DatatypeConverter.parseBase64Binary(encoded))).readObject();
         } catch (IOException | ClassNotFoundException ex) {
-            ex.printStackTrace();
             rules  = new ArrayList<>();
         }
         this.registerObserver(this);
@@ -141,7 +137,7 @@ public final class Redirector implements RedirectorObserver {
             prefs.put(PREF_NAME, DatatypeConverter.printBase64Binary(writer.toByteArray()));
             prefs.flush();            
         } catch (IOException | BackingStoreException ex) {
-            Logger.getLogger(Redirector.class.getName()).log(Level.SEVERE, null, ex);
+            
         }
        
     }

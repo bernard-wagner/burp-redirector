@@ -5,7 +5,9 @@ import burp.redirector.RedirectRule;
 import burp.redirector.Redirector;
 import java.awt.*;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class BurpExtender implements IBurpExtender, IProxyListener, ITab {
@@ -16,11 +18,11 @@ public class BurpExtender implements IBurpExtender, IProxyListener, ITab {
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
         this.callbacks = callbacks;
-        
+
         stdout = new PrintWriter(callbacks.getStdout(), true);
         callbacks.addSuiteTab(this);
         callbacks.registerProxyListener(this);
-        
+
     }
 
     @Override
@@ -40,12 +42,16 @@ public class BurpExtender implements IBurpExtender, IProxyListener, ITab {
             for (RedirectRule rule : Redirector.getInstance().getRules()) {
 
                 if (rule.enabled && rule.Matches(url)) {
-                    boolean https = rule.dProtocol == 0 ? "https".equals(url.getProtocol()) :  rule.dProtocol == 2;
-                    int port = rule.dPort == 0 ?  url.getPort() : rule.dPort;
-                    String hostname = rule.dHostname;
-                    stdout.println((https ? "https::/" : "http://") + hostname + ":" + port );
-                    message.getMessageInfo().setHttpService(callbacks.getHelpers().buildHttpService(hostname,port,https));
-                    message.setInterceptAction(IInterceptedProxyMessage.ACTION_FOLLOW_RULES);
+                    try {
+                        IRequestInfo rqInfo = this.callbacks.getHelpers().analyzeRequest(message.getMessageInfo());
+                        URL redirect = rule.createRedirect(url);
+                        String request = new String(message.getMessageInfo().getRequest());
+                        message.getMessageInfo().setRequest(request.replace(rqInfo.getUrl().getFile(), redirect.getFile()).getBytes());                             
+                        message.getMessageInfo().setHttpService(callbacks.getHelpers().buildHttpService(redirect.getHost(), redirect.getPort(), "https".equals(redirect.getProtocol())));
+                        message.setInterceptAction(IInterceptedProxyMessage.ACTION_FOLLOW_RULES);
+                    } catch (MalformedURLException ex) {
+                        Logger.getLogger(BurpExtender.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
 

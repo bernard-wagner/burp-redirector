@@ -41,24 +41,43 @@ public class RedirectRuleTest {
 
     @Test
     public void testSomeMethod() throws MalformedURLException {
-        RedirectRule rule1 = new RedirectRule(1, "www.mybroadband.co.za", 80, 1, "localost", 8080);
-        if (!rule1.Matches(new URL("http://www.mybroadband.co.za"))) fail("Matcher failed");
-        if (!rule1.Matches(new URL("http://www.mybroadband.co.za/"))) fail("Matcher failed");
-        if (!rule1.Matches(new URL("http://www.mybroadband.co.za/news"))) fail("Matcher failed");
-        if (rule1.Matches(new URL("http://www.google.co.za/"))) fail("Matcher failed");
+        RedirectRule rule1 = new RedirectRule(1, "www.mybroadband.co.za", 80, "(?<path>.*)", 1, "localhost", 8080, "${path}");
+        RedirectRule rule2 = new RedirectRule(1, "*.mybroadband.co.za",  80, "(?<path>.*)", 1, "localhost", 8080, "${path}");
+        RedirectRule rule3 = new RedirectRule(1, "www.*.co.za",  80, "(?<path>.*)", 1, "localhost", 8080, "${path}");
+        URL url1 = new URL("http://www.mybroadband.co.za");
+        URL url2 = new URL("http://www.mybroadband.co.za/");
+        URL url3 = new URL("http://www.mybroadband.co.za/news");
+        URL url4 = new URL("http://www.google.co.za/");
+        if (!rule1.Matches(url1)) fail("Matcher failed");
+        if (!rule1.Matches(url2)) fail("Matcher failed");
+        if (!rule1.Matches(url3)) fail("Matcher failed");
+        if (rule1.Matches(url4)) fail("Matcher failed");
         
-        RedirectRule rule2 = new RedirectRule(1, "*.mybroadband.co.za", 80, 1, "localost", 8080);
-        if (!rule2.Matches(new URL("http://www.mybroadband.co.za"))) fail("Matcher failed");
-        if (!rule2.Matches(new URL("http://www.mybroadband.co.za/"))) fail("Matcher failed");
-        if (!rule2.Matches(new URL("http://www.mybroadband.co.za/news"))) fail("Matcher failed");   
-        if (rule2.Matches(new URL("http://www.google.co.za/"))) fail("Matcher failed");
+        
+        if (!rule2.Matches(url1)) fail("Matcher failed");
+        if (!rule2.Matches(url2)) fail("Matcher failed");
+        if (!rule2.Matches(url3)) fail("Matcher failed");
+        if (rule2.Matches(url4)) fail("Matcher failed");
 
-        RedirectRule rule3 = new RedirectRule(1, "www.*.co.za", 80, 1, "localost", 8080);
-        if (!rule3.Matches(new URL("http://www.mybroadband.co.za"))) fail("Matcher failed");
-        if (!rule3.Matches(new URL("http://www.mybroadband.co.za/"))) fail("Matcher failed");
-        if (!rule3.Matches(new URL("http://www.mybroadband.co.za/news"))) fail("Matcher failed");  
-        if (!rule3.Matches(new URL("http://www.google.co.za/"))) fail("Matcher failed");        
-        if (rule3.Matches(new URL("http://www.google.com/"))) fail("Matcher failed");        
+        
+        if (!rule3.Matches(url1)) fail("Matcher failed");
+        if (!rule3.Matches(url2)) fail("Matcher failed");
+        if (!rule3.Matches(url3)) fail("Matcher failed");
+        if (!rule3.Matches(url4)) fail("Matcher failed");     
+        
+        System.out.println(rule1.createRedirect(url1).toString());
+        System.out.println(rule1.createRedirect(url2).toString());
+        System.out.println(rule1.createRedirect(url3).toString());
+        
+        System.out.println(rule2.createRedirect(url1).toString());
+        System.out.println(rule2.createRedirect(url2).toString());
+        System.out.println(rule2.createRedirect(url3).toString());
+
+        System.out.println(rule3.createRedirect(url1).toString());
+        System.out.println(rule3.createRedirect(url2).toString());
+        System.out.println(rule3.createRedirect(url3).toString());        
+        System.out.println(rule3.createRedirect(url4).toString());   
+        //if (rule3.Matches(url4)) fail("Matcher failed");        
         // TODO review the generated test code and remove the default call to fail.
         
     }
