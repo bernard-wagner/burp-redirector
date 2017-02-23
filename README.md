@@ -21,6 +21,10 @@ TODO: Will hopefully publish the plugin on extension store for BurpSuite.
 
 ## Main Tab
 
+![main_tab](/uploads/dbdbae51630f81ec76e186ca222d0adc/main_tab.png)
+
 ## Rule Editor
+![edit](/uploads/21574c501f32f93a592702d966831cd7/edit.png)
 
 ## Redirected Request
+![redirected_request](/uploads/5ae8b323814eb745ca85a87e5867a3f3/redirected_request.png)
