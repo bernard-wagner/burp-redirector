@@ -5,16 +5,19 @@
  */
 package burp.redirector;
 
+import burp.IBurpExtenderCallbacks;
+
 /**
  *
  * @author vagrant
  */
 public class MainPanel extends javax.swing.JPanel {
-
+    private IBurpExtenderCallbacks callbacks;
     /**
      * Creates new form MainPanel
      */
-    public MainPanel() {
+    public MainPanel(IBurpExtenderCallbacks callbacks) {
+        this.callbacks = callbacks;
         initComponents();
         Redirector.getInstance().registerObserver((RedirectTableModel)this.tblRedirect.getModel());
         tblRedirect.getColumnModel().getColumn(0).setPreferredWidth(160);
@@ -137,7 +140,7 @@ public class MainPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-        EditDialog dialog = new EditDialog(null, true, new RedirectRule());
+        EditDialog dialog = new EditDialog(null, true, new RedirectRule(),callbacks);
         dialog.setVisible(true);
     }//GEN-LAST:event_btnAddActionPerformed
 
@@ -154,7 +157,7 @@ public class MainPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnDownActionPerformed
 
     private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
-        EditDialog dialog = new EditDialog(null, true, Redirector.getInstance().getRules().get(this.tblRedirect.getSelectedRow()));
+        EditDialog dialog = new EditDialog(null, true, Redirector.getInstance().getRules().get(this.tblRedirect.getSelectedRow()),callbacks);
         dialog.setVisible(true);
     }//GEN-LAST:event_btnEditActionPerformed
 

@@ -50,41 +50,50 @@ public class RedirectRule implements Serializable{
         this.sProtocol = 0;
         this.sHostname = "";
         this.sPort = 0;
-        this.sPath = "(?<path>.*)";
+        this.sPath = "/(?<path>.*)";
         this.dProtocol = 0;
         this.dHostname = "";
         this.dPort = 0;
-        this.dPath = "${path}";
+        this.dPath = "/${path}";
     }
     
     public boolean Matches(URL url) {
-        return urlToString(url).matches(this.getSourcePattern());
+        System.out.println(this.buildRegexExpression());
+        return urlToString(url).matches(this.buildRegexExpression());
     }
 
     public URL createRedirect(URL url) throws MalformedURLException {
-         StringBuffer buffer = new StringBuffer();
-        
+       
          Pattern srcPattern = Pattern.compile(sPath);
 
          Matcher matcher = srcPattern.matcher(url.getPath());
+         String path = matcher.replaceFirst(dPath);
          
-         
-        
-         String result = (dProtocol == 0 ? "https".equals(url.getProtocol()) :  dProtocol == 2) ? "https://" : "http://"
-                 + dHostname + ":" 
-                 + Integer.toString(dPort == 0 ?  url.getPort() : dPort) 
-                 + matcher.replaceAll(dPath);
-                 
-                            
-        return new URL(result);
+        return new URL((dProtocol == 0 ? "https".equals(url.getProtocol()) :  dProtocol == 2) ? "https" : "http",
+                dHostname, 
+                dPort == 0 ?  url.getPort() : dPort,
+                (path.length() > 0 && path.charAt(0) == '/' ? path : "/" + path));
+    }
+    
+    public String buildRegexExpression(){
+        return wildcardToRegex( (this.sProtocol == 0 ? "*://" : (this.sProtocol == 1 ? "http://" : "https://")) 
+                + this.sHostname + ":" 
+                + (this.sPort == 0 ? "*" : this.sPort))
+                + ((sPath.charAt(0) == '/') ? sPath : "/" + sPath);
     }
     
     public String getSourcePattern() {
-        return wildcardToRegex((this.sProtocol == 0 ? "*://" : (this.sProtocol == 1 ? "http://" : "https://")) + this.sHostname + ":" + (this.sPort == 0 ? "*" : this.sPort))  + sPath;
+        return (this.sProtocol == 0 ? "*://" : (this.sProtocol == 1 ? "http://" : "https://")) 
+                + this.sHostname + ":" 
+                + (this.sPort == 0 ? "*" : this.sPort)  
+                + ((sPath.charAt(0) == '/') ? sPath : "/" + sPath);
     }
     
     public String getDestinationPattern() {
-        return (this.dProtocol == 0 ? "*://" : (this.dProtocol == 1 ? "http://" : "https://")) + this.dHostname + ":" + (this.dPort == 0 ? "*" : this.dPort) + dPath;
+        return (this.dProtocol == 0 ? "*://" : (this.dProtocol == 1 ? "http://" : "https://")) 
+                + this.dHostname + ":" 
+                + (this.dPort == 0 ? "*" : this.dPort) 
+                + ((dPath.charAt(0) == '/') ? dPath : "/" + dPath);
     }
 
     private String urlToString(URL url) {

@@ -11,11 +11,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import javax.swing.JFrame;
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -74,24 +71,6 @@ public final class Redirector implements RedirectorObserver {
             instance = new Redirector();
         }
         return instance;
-    }
-
-    public static void main(String[] args) {
-        Redirector redirector = Redirector.getInstance();
-
-        /* RedirectRule rule;
-
-        for (int i = 0; i < 3; i++) {
-            rule = new RedirectRule();
-            redirector.rules.add(rule);
-        }*/
-        MainPanel mainPanel = new MainPanel();
-
-        JFrame f = new JFrame();
-        f.getContentPane().add(mainPanel);
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(300, 300);
-        f.show();
     }
 
     public void moveRuleUp(RedirectRule rule) {

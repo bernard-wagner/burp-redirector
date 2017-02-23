@@ -41,9 +41,9 @@ public class RedirectRuleTest {
 
     @Test
     public void testSomeMethod() throws MalformedURLException {
-        RedirectRule rule1 = new RedirectRule(1, "www.mybroadband.co.za", 80, "(?<path>.*)", 1, "localhost", 8080, "${path}");
-        RedirectRule rule2 = new RedirectRule(1, "*.mybroadband.co.za",  80, "(?<path>.*)", 1, "localhost", 8080, "${path}");
-        RedirectRule rule3 = new RedirectRule(1, "www.*.co.za",  80, "(?<path>.*)", 1, "localhost", 8080, "${path}");
+        RedirectRule rule1 = new RedirectRule(1, "www.mybroadband.co.za", 80, "/(?<path>.*)", 1, "localhost", 8080, "/${path}");
+        RedirectRule rule2 = new RedirectRule(1, "*.mybroadband.co.za",  80, "/(?<path>.*)", 1, "localhost", 8080, "/${path}");
+        RedirectRule rule3 = new RedirectRule(1, "www.*.co.za",  80, "/(?<path>.*)", 1, "localhost", 8080, "/${path}");
         URL url1 = new URL("http://www.mybroadband.co.za");
         URL url2 = new URL("http://www.mybroadband.co.za/");
         URL url3 = new URL("http://www.mybroadband.co.za/news");

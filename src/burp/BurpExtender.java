@@ -32,7 +32,7 @@ public class BurpExtender implements IBurpExtender, IProxyListener, ITab {
 
     @Override
     public Component getUiComponent() {
-        return new MainPanel();
+        return new MainPanel(callbacks);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class BurpExtender implements IBurpExtender, IProxyListener, ITab {
                         IRequestInfo rqInfo = this.callbacks.getHelpers().analyzeRequest(message.getMessageInfo());
                         URL redirect = rule.createRedirect(url);
                         String request = new String(message.getMessageInfo().getRequest());
-                        message.getMessageInfo().setRequest(request.replace(rqInfo.getUrl().getFile(), redirect.getFile()).getBytes());                             
+                        message.getMessageInfo().setRequest(request.replaceFirst(rqInfo.getUrl().getPath(), redirect.getPath()).getBytes());                             
                         message.getMessageInfo().setHttpService(callbacks.getHelpers().buildHttpService(redirect.getHost(), redirect.getPort(), "https".equals(redirect.getProtocol())));
                         message.setInterceptAction(IInterceptedProxyMessage.ACTION_FOLLOW_RULES);
                     } catch (MalformedURLException ex) {

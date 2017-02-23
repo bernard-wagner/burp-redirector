@@ -5,34 +5,138 @@
  */
 package burp.redirector;
 
-import javax.swing.SpinnerListModel;
+import burp.IBurpExtenderCallbacks;
+import burp.IHttpRequestResponse;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
  * @author vagrant
  */
-public class EditDialog extends javax.swing.JDialog {
+public class EditDialog extends javax.swing.JDialog implements ItemListener, ChangeListener, DocumentListener, TableModelListener {
 
     private RedirectRule rule;
+    private IBurpExtenderCallbacks callbacks;
 
     /**
      * Creates new form AddDialog
      */
-    public EditDialog(java.awt.Frame parent, boolean modal, RedirectRule rule) {
+    public EditDialog(java.awt.Frame parent, boolean modal, RedirectRule rule, IBurpExtenderCallbacks callbacks) {
         super(parent, modal);
         this.rule = rule;
+        this.callbacks = callbacks;
         initComponents();
         cmbSourceProtocol.setSelectedIndex(rule.sProtocol);
         cmbRedirectProtocol.setSelectedIndex(rule.dProtocol);
         edtSourceHost.setText(rule.sHostname);
-        editRedirectHost.setText(rule.dHostname);       
-        ((SpinnerNumberModel)spnSourcePort.getModel()).setValue(rule.sPort);
-        ((SpinnerNumberModel)spnRedirectPort.getModel()).setValue(rule.dPort);
-        
+        edtRedirectHost.setText(rule.dHostname);
+        ((SpinnerNumberModel) spnSourcePort.getModel()).setValue(rule.sPort);
+        ((SpinnerNumberModel) spnRedirectPort.getModel()).setValue(rule.dPort);
+
         tblPaths.getModel().setValueAt(rule.sPath, 0, 0);
         tblPaths.getModel().setValueAt(rule.dPath, 0, 1);
 
+        cmbSourceProtocol.addItemListener(this);
+        cmbRedirectProtocol.addItemListener(this);
+        spnSourcePort.addChangeListener(this);
+        spnRedirectPort.addChangeListener(this);
+        edtSourceHost.getDocument().addDocumentListener(this);
+        edtRedirectHost.getDocument().addDocumentListener(this);
+        tblPaths.getModel().addTableModelListener(this);
+
+        inputChanged();
+
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent ie) {
+        inputChanged();
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent ce) {
+        inputChanged();
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent de) {
+        inputChanged();
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent de) {
+        inputChanged();
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent de) {
+        inputChanged();
+    }
+
+    @Override
+    public void tableChanged(TableModelEvent tme) {
+        inputChanged();
+    }
+
+    private void inputChanged() {
+        String srcPath = (String) tblPaths.getModel().getValueAt(0, 0);
+        if (srcPath.charAt(0) != '/') {
+            tblPaths.getModel().setValueAt("/" + srcPath, 0, 0);
+        }
+
+        String dstPath = (String) tblPaths.getModel().getValueAt(0, 1);
+        if (dstPath.charAt(0) != '/') {
+            tblPaths.getModel().setValueAt("/" + dstPath, 0, 1);
+        }
+
+        RedirectRule rule = new RedirectRule(
+                this.cmbSourceProtocol.getSelectedIndex(),
+                this.edtSourceHost.getText(),
+                (Integer) this.spnSourcePort.getValue(),
+                (String) tblPaths.getModel().getValueAt(0, 0),
+                this.cmbRedirectProtocol.getSelectedIndex(),
+                this.edtRedirectHost.getText(),
+                (Integer) this.spnRedirectPort.getValue(),
+                (String) tblPaths.getModel().getValueAt(0, 1));
+        DefaultTableModel model = (DefaultTableModel) tblRedirect.getModel();
+        while (model.getRowCount() > 0) {
+            model.removeRow(0);
+        }
+
+        HashSet<URL> unique_set = new HashSet<>();
+        for (IHttpRequestResponse info : callbacks.getProxyHistory()) {
+            URL url = callbacks.getHelpers().analyzeRequest(info).getUrl();
+            unique_set.add(url);
+
+        }
+
+        Iterator<URL> iterator = unique_set.iterator();
+        while (iterator.hasNext()) {
+            URL url = iterator.next();
+            try {
+                if (rule.Matches(url)) {
+                    model.addRow(new String[]{url.toString(), rule.createRedirect(url).toString()});
+                }
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(EditDialog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
     }
 
     /**
@@ -44,22 +148,26 @@ public class EditDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
         btnCancel = new javax.swing.JButton();
         btnOK = new javax.swing.JButton();
-        edtSourceHost = new javax.swing.JTextField();
-        spnRedirectPort = new javax.swing.JSpinner();
+        jPanel3 = new javax.swing.JPanel();
+        pnlRedirect = new javax.swing.JScrollPane();
+        tblRedirect = new javax.swing.JTable();
+        jPanel2 = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
         spnSourcePort = new javax.swing.JSpinner();
-        jLabel2 = new javax.swing.JLabel();
+        edtSourceHost = new javax.swing.JTextField();
         cmbRedirectProtocol = new javax.swing.JComboBox<>();
         cmbSourceProtocol = new javax.swing.JComboBox<>();
-        editRedirectHost = new javax.swing.JTextField();
+        spnRedirectPort = new javax.swing.JSpinner();
+        edtRedirectHost = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblPaths = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
-        jLabel1.setText("Specify the details of the redirection rule.");
 
         btnCancel.setText("Cancel");
         btnCancel.addActionListener(new java.awt.event.ActionListener() {
@@ -75,38 +183,81 @@ public class EditDialog extends javax.swing.JDialog {
             }
         });
 
-        edtSourceHost.setBackground(new java.awt.Color(255, 255, 255));
-        edtSourceHost.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                edtSourceHostActionPerformed(evt);
-            }
-        });
+        tblRedirect.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
 
-        spnRedirectPort.setModel(new javax.swing.SpinnerNumberModel(80, 1, 65535, 1));
-        spnRedirectPort.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spnRedirectPortStateChanged(evt);
+            },
+            new String [] {
+                "Source", "Destination"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Object.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
             }
         });
+        tblRedirect.setColumnSelectionAllowed(true);
+        tblRedirect.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tblRedirect.getTableHeader().setReorderingAllowed(false);
+        pnlRedirect.setViewportView(tblRedirect);
+        tblRedirect.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
         spnSourcePort.setModel(new javax.swing.SpinnerNumberModel(80, 1, 65535, 1));
-        spnSourcePort.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                spnSourcePortStateChanged(evt);
-            }
-        });
 
-        jLabel2.setText("----->");
+        edtSourceHost.setBackground(new java.awt.Color(255, 255, 255));
 
         cmbRedirectProtocol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Any", "HTTP", "HTTPS" }));
 
         cmbSourceProtocol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Any", "HTTP", "HTTPS" }));
 
-        editRedirectHost.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                editRedirectHostActionPerformed(evt);
-            }
-        });
+        spnRedirectPort.setModel(new javax.swing.SpinnerNumberModel(80, 1, 65535, 1));
+
+        jLabel2.setText("----->");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(cmbSourceProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(edtSourceHost, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spnSourcePort, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2)
+                .addGap(18, 18, 18)
+                .addComponent(cmbRedirectProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(edtRedirectHost, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spnRedirectPort, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(spnRedirectPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(edtSourceHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(spnSourcePort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2)
+                    .addComponent(cmbRedirectProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cmbSourceProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(edtRedirectHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
 
         tblPaths.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -130,6 +281,67 @@ public class EditDialog extends javax.swing.JDialog {
             tblPaths.getColumnModel().getColumn(1).setResizable(false);
         }
 
+        jLabel1.setText("Specify the details of the redirection rule.");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGap(0, 12, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 711, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        jLabel3.setText("Preview");
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(pnlRedirect, javax.swing.GroupLayout.PREFERRED_SIZE, 713, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(22, 22, 22))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(3, 3, 3)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(pnlRedirect, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(6, 6, 6))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -138,54 +350,23 @@ public class EditDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btnOK, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(5, 5, 5)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(cmbSourceProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(edtSourceHost, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spnSourcePort, javax.swing.GroupLayout.PREFERRED_SIZE, 86, Short.MAX_VALUE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel2)
-                                .addGap(18, 18, 18)
-                                .addComponent(cmbRedirectProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(editRedirectHost, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spnRedirectPort, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
-                .addGap(56, 56, 56)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(spnRedirectPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(edtSourceHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(spnSourcePort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2)
-                    .addComponent(cmbRedirectProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmbSourceProtocol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(editRedirectHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(31, 31, 31)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnCancel)
-                    .addComponent(btnOK))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnOK)
+                    .addComponent(btnCancel))
+                .addContainerGap())
         );
 
         pack();
@@ -196,10 +377,11 @@ public class EditDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_btnCancelActionPerformed
 
     private void btnOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOKActionPerformed
+        inputChanged();
         this.rule.sHostname = this.edtSourceHost.getText();
         this.rule.sProtocol = this.cmbSourceProtocol.getSelectedIndex();
         this.rule.sPort = (Integer) this.spnSourcePort.getValue();
-        this.rule.dHostname = this.editRedirectHost.getText();
+        this.rule.dHostname = this.edtRedirectHost.getText();
         this.rule.dProtocol = this.cmbRedirectProtocol.getSelectedIndex();
         this.rule.dPort = (Integer) this.spnRedirectPort.getValue();
         this.rule.sPath = (String) tblPaths.getModel().getValueAt(0, 0);
@@ -208,35 +390,26 @@ public class EditDialog extends javax.swing.JDialog {
         this.dispose();
     }//GEN-LAST:event_btnOKActionPerformed
 
-    private void edtSourceHostActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_edtSourceHostActionPerformed
-
-    }//GEN-LAST:event_edtSourceHostActionPerformed
-
-    private void spnRedirectPortStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spnRedirectPortStateChanged
-
-    }//GEN-LAST:event_spnRedirectPortStateChanged
-
-    private void spnSourcePortStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spnSourcePortStateChanged
-        // TODO add your handling code here:
-    }//GEN-LAST:event_spnSourcePortStateChanged
-
-    private void editRedirectHostActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editRedirectHostActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_editRedirectHostActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnOK;
     private javax.swing.JComboBox<String> cmbRedirectProtocol;
     private javax.swing.JComboBox<String> cmbSourceProtocol;
-    private javax.swing.JTextField editRedirectHost;
+    private javax.swing.JTextField edtRedirectHost;
     private javax.swing.JTextField edtSourceHost;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane pnlRedirect;
     private javax.swing.JSpinner spnRedirectPort;
     private javax.swing.JSpinner spnSourcePort;
     private javax.swing.JTable tblPaths;
+    private javax.swing.JTable tblRedirect;
     // End of variables declaration//GEN-END:variables
+
 }
