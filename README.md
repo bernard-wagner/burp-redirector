@@ -28,3 +28,7 @@ TODO: Will hopefully publish the plugin on extension store for BurpSuite.
 
 ## Redirected Request
 ![redirected_request](/uploads/5ae8b323814eb745ca85a87e5867a3f3/redirected_request.png)
+
+# Latest Release 
+
+[burp-redirector.jar](/uploads/469979b59fb2c4a1672076d5a4cbf5f1/burp-redirector.jar)
