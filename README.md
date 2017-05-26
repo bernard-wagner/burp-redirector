@@ -21,11 +21,11 @@ TODO: Will hopefully publish the plugin on extension store for BurpSuite.
 
 ## Main Tab
 
-![main_tab](https://drive.google.com/open?id=0B4j4679ATg6bQ1JnZzFXNEhtcHM)
+![main_tab](http://imgur.com/ERjf6UU)
 
 ## Rule Editor
-![edit](https://drive.google.com/open?id=0B4j4679ATg6bTWpDeUVaT0dsR3c)
+![edit](http://imgur.com/sRJUaXj)
 
 ## Redirected Request
-![redirected_request](https://drive.google.com/open?id=0B4j4679ATg6bVjE5N3ZTMWFrb1E)
+![redirected_request](http://imgur.com/JS30jN1)
 
