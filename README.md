@@ -21,14 +21,11 @@ TODO: Will hopefully publish the plugin on extension store for BurpSuite.
 
 ## Main Tab
 
-![main_tab](/uploads/dbdbae51630f81ec76e186ca222d0adc/main_tab.png)
+![main_tab](https://drive.google.com/open?id=0B4j4679ATg6bQ1JnZzFXNEhtcHM)
 
 ## Rule Editor
-![edit](/uploads/21574c501f32f93a592702d966831cd7/edit.png)
+![edit](https://drive.google.com/open?id=0B4j4679ATg6bTWpDeUVaT0dsR3c)
 
 ## Redirected Request
-![redirected_request](/uploads/5ae8b323814eb745ca85a87e5867a3f3/redirected_request.png)
+![redirected_request](https://drive.google.com/open?id=0B4j4679ATg6bVjE5N3ZTMWFrb1E)
 
-# Latest Release 
-
-[burp-redirector.jar](/uploads/469979b59fb2c4a1672076d5a4cbf5f1/burp-redirector.jar)
